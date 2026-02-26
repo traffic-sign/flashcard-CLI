@@ -1,4 +1,5 @@
 #include "TerminalManager.h"
+#include "utilFuncs.h"
 
 #include <iostream>
 #include <string>
@@ -9,6 +10,10 @@
 #include <random>
 #include <vector>
 #include <filesystem>
+
+
+#define CUR_UP1 "\033[F"
+#define CUR_DOWN1 "\033[K"
 
 namespace fs = std::filesystem;
 
@@ -100,9 +105,10 @@ void startTerminalLoop()
         {
             std::cout << "\n\n ----------------------------------------------------------------";
             for (const auto& entry : fs::directory_iterator("sets")) {
-                std::string name = entry.path().filename().string();
-                name.erase(name.length()-4, 4);
-                std::cout << "\n\n" << name;
+                std::string name = entry.path().filename().string(); //gets the set name
+                int numCards = FindNumberOfCardsInSet(name); //gets cards from the set BEFORE erasing the .txt on the name
+                name.erase(name.length()-4, 4); //erases the .txt
+                std::cout << "\n\n" << name << " - " << numCards << " cards";
             }
             std::cout << "\n\n----------------------------------------------------------------\n\n";
         }
@@ -170,19 +176,19 @@ void startTerminalLoop()
                 if (input == "f")
                 {
                     if (front) 
-                        {std::cout << "\033[F\033[K\033[F\033[K" << cards[i].second << "\nflip (f), next (n), or back (b): "; front = false;}
+                        {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].second << "\nflip (f), next (n), or back (b): "; front = false;}
                     else    
-                        {std::cout << "\033[F\033[K\033[F\033[K" << cards[i].first << "\nflip (f), next (n), or back (b): "; front = true;}
+                        {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].first << "\nflip (f), next (n), or back (b): "; front = true;}
                     goto flip;
                 }             
                 if (input == "n")
                 {
-                    std::cout << "\033[F\033[K\033[F\033[K";
+                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
                     continue;
                 }
                 if (input == "b")
                 {
-                    std::cout << "\033[F\033[K\033[F\033[K";
+                    std::cout <<  CUR_UP1 CUR_DOWN1  CUR_UP1 CUR_DOWN1;
                     if (!i == 0)
                         i-=2;
                     else
@@ -232,18 +238,18 @@ void startTerminalLoop()
 
                 if (answer == cards[i].second)
                 {
-                    std::cout << "\033[F\033[K\033[F\033[Kcorrect!\n: enter anything to continue ";
+                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "correct!\n: enter anything to continue ";
                     std::string Continue;
                     std::getline(std::cin, Continue);
-                    std::cout << "\033[F\033[K\033[F\033[K";
+                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
                 }
                 else
                 {
-                    std::cout << "\033[F\033[K\033[F\033[Kincorrect! the correct answer was " << cards[i].second << "\n: enter anything to continue (type N if you were correct) ";
+                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "incorrect! the correct answer was " << cards[i].second << "\n: enter anything to continue (type N if you were correct) ";
                     
                     std::string Continue;
                     std::getline(std::cin, Continue);
-                    std::cout << "\033[F\033[K\033[F\033[K";
+                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
 
                     if (Continue != "N")
                     {
@@ -268,7 +274,7 @@ void startTerminalLoop()
                 std::string extraTerms;
                 std::getline(std::cin, extraTerms);
                 term = term+extraTerms;
-                std::cout << "\033[F\033[K\033[F\033[Know enter the definition of that term: " << std::endl;
+                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "now enter the definition of that term: " << std::endl;
                 std::string definition; 
                 std::cin >> definition;
                 std::string extraDefs;
@@ -276,11 +282,11 @@ void startTerminalLoop()
                 definition = definition+extraDefs;
                 set << term << std::endl << definition << std::endl;
 
-                std::cout << "\033[F\033[K\033[F\033[Kadd another term? (y/n): "; 
+                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "add another term? (y/n): "; 
                 std::string answer;
                 std::cin >> answer;
 
-                if (answer == "y") {std::cout << "\033[F\033[K"; continue;}
+                if (answer == "y") {std::cout << CUR_UP1 CUR_DOWN1; continue;}
                 else {break;}
             }
         }
@@ -365,17 +371,17 @@ void startTerminalLoop()
                     index++;
                 }
 
-                std::cout << "\033[F\033[Kdelete another term? (y/n): "; 
+                std::cout << CUR_UP1 CUR_DOWN1 << "delete another term? (y/n): "; 
                 std::string answer;
                 std::cin >> answer;
 
-                if (answer == "y") {std::cout << "\033[F\033[K"; continue;}
+                if (answer == "y") {std::cout << CUR_UP1 CUR_DOWN1; continue;}
                 else {break;}
             }
         }
         else if (setOpened && input == "showallcards")
         {
-            std::cout << "\n\n\n\n";
+            std::cout << "\n\n";
             std::vector<std::pair<std::string, std::string>> cards;
             
             std::string term;
@@ -392,11 +398,12 @@ void startTerminalLoop()
 
                 index++;
             }        
+            std::cout << "------------------------------------";
             for (int i = 0; i < cards.size(); i++)
             {
-                std::cout << cards[i].second << "  :  " << cards[i].first << '\n' << '\n';
+                std::cout << "\n\n" << cards[i].second << "  :  " << cards[i].first;
             }
-            std::cout << '\n';
+            std::cout << "\n\n------------------------------------";
         }
         else 
         {
