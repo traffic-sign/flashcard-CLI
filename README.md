@@ -1,4 +1,4 @@
-# Flashcard Cli
+# Flashcard CLI
 
 A CLI tool for creating and reviewing flashcards!  
   
