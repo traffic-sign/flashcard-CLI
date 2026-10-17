@@ -13,7 +13,7 @@
 
 
 #define CUR_UP1 "\033[F"
-#define CUR_DOWN1 "\033[K"
+#define DEL_LINE "\033[K"
 
 namespace fs = std::filesystem;
 
@@ -182,26 +182,32 @@ void startTerminalLoop()
                 std::shuffle(cards.begin(), cards.end(), g);
             }
 
+            bool front = true;
             for (int i = 0; i < cards.size();)
             {
-                bool front = true;
 
-                std::cout <<  CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1; // move the cursor to go back up and write over the last card
-                std::cout << cards[i].first << "\nflip (f), next (n), or back (b): ";
+                std::cout <<  CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE; // move the cursor to go back up and write over the last card
+                std::cout << ((front == true) ? cards[i].first : cards[i].second) << "\nflip (f), next (n), or back (b): ";
                 std::string input;
                 std::cin >> input;
 
                 if (input == "f") //flip
                 {
                     if (front) 
-                        {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].second << "\nflip (f), next (n), or back (b): "; front = false;}
-                    else    
-                        {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].first << "\nflip (f), next (n), or back (b): "; front = true;}
-                }             
+                        {front = false;}
+                    else 
+                        {front = true;}
+                }        
                 if (input == "n") //next
+                {
+                    front = true;
                     i++;
+                }
                 if (input == "b" && !i == 0) //back. the !i == 0  in the if statement just makes sure that the user isn't trying to go back from the first card in the set.
+                {
+                    front = true;
                     i--;
+                }
             }
         }
         else if (setOpened && input == "write") //everything under this if statement HAS to be satanic
@@ -238,7 +244,7 @@ void startTerminalLoop()
             std::shuffle(cards.begin(), cards.end(), g);
             for (int i = 0; i < cards.size(); i++)
             {
-                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << cards[i].first << "\n: ";
+                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << cards[i].first << "\n: ";
 
                 std::string answer; //there HAS to be a better way to do this but this works well enough.
                 std::cin >> answer;
@@ -248,13 +254,13 @@ void startTerminalLoop()
 
                 if (answer == cards[i].second)
                 {
-                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "correct!\n: enter anything to continue ";
+                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "correct!\n: enter anything to continue ";
                     std::string Continue;
                     std::getline(std::cin, Continue);
                 }
                 else
                 {
-                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "incorrect! the correct answer was " << cards[i].second << "\n: enter anything to continue (type N if you were correct) ";
+                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "incorrect! the correct answer was " << cards[i].second << "\n: enter anything to continue (type N if you were correct) ";
                     
                     std::string Continue;
                     std::getline(std::cin, Continue);
@@ -282,7 +288,7 @@ void startTerminalLoop()
                 std::string extraTerms;
                 std::getline(std::cin, extraTerms);
                 term = term+extraTerms;
-                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "now enter the definition of that term: " << std::endl;
+                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "now enter the definition of that term: " << std::endl;
                 std::string definition; 
                 std::cin >> definition;
                 std::string extraDefs;
@@ -290,11 +296,11 @@ void startTerminalLoop()
                 definition = definition+extraDefs;
                 set << term << std::endl << definition << std::endl;
 
-                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "add another term? (y/n): "; 
+                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "add another term? (y/n): "; 
                 std::string answer;
                 std::cin >> answer;
 
-                if (answer == "y") {std::cout << CUR_UP1 CUR_DOWN1; continue;}
+                if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
                 else {break;}
             }
         }
@@ -377,11 +383,11 @@ void startTerminalLoop()
                     index++;
                 }
 
-                std::cout << CUR_UP1 CUR_DOWN1 << "delete another term? (y/n): "; 
+                std::cout << CUR_UP1 DEL_LINE << "delete another term? (y/n): "; 
                 std::string answer;
                 std::cin >> answer;
 
-                if (answer == "y") {std::cout << CUR_UP1 CUR_DOWN1; continue;}
+                if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
                 else {break;}
             }
         }
