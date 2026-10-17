@@ -18,5 +18,5 @@ int FindNumberOfCardsInSet(std::string setToOpen)
     }
 
     setBeingRead.close();
-    return lines;
+    return lines/2; //divide the number of lines by 2 since each card is 2 lines
 }
