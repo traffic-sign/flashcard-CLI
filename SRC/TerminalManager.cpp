@@ -49,14 +49,14 @@ void startTerminalLoop()
     std::fstream set;
     std::string setPath = "";
     std::string setName = "";
-    std::cout << "type \"help\" for a list of valid commands)\n";
+    std::cout << "type \"help\" for a list of valid commands\n";
     while (true)
     {
         std::string input;
         std::cout << "\ninput a command: ";
         std::cin >> input;
-        std::transform(input.begin(), input.end(), input.begin(), ::tolower); //makes the input all lowercase. the first input.begin() and input.end() specify the
-        //of where the transformation happens, the second input.begin() just needs to be there I forgot why, and ::tolower is the operation thats being performed on it
+        std::transform(input.begin(), input.end(), input.begin(), ::tolower); //makes the input all lowercase. the first input.begin() and input.end() specify
+        //where the transformation happens, the second input.begin() just needs to be there I forgot why, and ::tolower is the operation thats being performed
         
         if (input == "help")
         {
@@ -69,6 +69,12 @@ void startTerminalLoop()
             std::cin >> name;
 
             std::ifstream setExists("sets/"+name+".txt");
+            if (!fs::is_directory("sets")) 
+            {
+                fs::path current_dir = fs::current_path();
+                fs::path new_sets_path = current_dir / "sets";
+                fs::create_directory(new_sets_path);
+            }
             if (setExists.good()) //if theres no errors it means it found the file and it exists which means it doesn't need to create a file
             {
                 std::cout << "Error: a set with that name already exists!";
@@ -83,7 +89,7 @@ void startTerminalLoop()
         }
         else if (input == "deleteset")
         {
-            std::cout << "type the name of the setyou want to delete: ";
+            std::cout << "type the name of the set you want to delete: ";
             std::string name;
             std::cin >> name;
 
@@ -103,12 +109,15 @@ void startTerminalLoop()
         }
         else if (input == "showallsets")
         {
-            std::cout << "\n\n ----------------------------------------------------------------";
-            for (const auto& entry : fs::directory_iterator("sets")) {
-                std::string name = entry.path().filename().string(); //gets the set name
-                int numCards = FindNumberOfCardsInSet(name); //gets cards from the set BEFORE erasing the .txt on the name
-                name.erase(name.length()-4, 4); //erases the .txt
-                std::cout << "\n\n" << name << " - " << numCards << " cards";
+            std::cout << "\n\n----------------------------------------------------------------";
+            if (fs::is_directory("sets"))
+            {
+                for (const auto& entry : fs::directory_iterator("sets")) {
+                    std::string name = entry.path().filename().string(); //gets the set name
+                    int numCards = FindNumberOfCardsInSet(name); //gets cards from the set BEFORE erasing the .txt on the name
+                    name.erase(name.length()-4, 4); //erases the .txt
+                    std::cout << "\n\n" << name << " - " << numCards << " cards";
+                }
             }
             std::cout << "\n\n----------------------------------------------------------------\n\n";
         }
@@ -159,78 +168,79 @@ void startTerminalLoop()
                 cards.push_back(card);
 
                 index++;
-            }        
-            std::random_device rd; //I genuinley have no clue what this lines do I just copied them. all they do shuffle the cards
-            std::mt19937 g(rd());  // 
+            }                        
+            
+            std::cout << "should the cards be shuffled? (y/n): " << std::endl;
+            std::string answer; 
+            std::cin >> answer;
+
+            if (answer == "y" || answer == "Y")
+            {
+                std::random_device rd; //I genuinley have no clue what these lines do I just copied them. 
+                std::mt19937 g(rd());  //all they do is shuffle the cards
         
-            std::shuffle(cards.begin(), cards.end(), g);
-            for (int i = 0; i < cards.size(); i++)
+                std::shuffle(cards.begin(), cards.end(), g);
+            }
+
+            for (int i = 0; i < cards.size();)
             {
                 bool front = true;
 
+                std::cout <<  CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1; // move the cursor to go back up and write over the last card
                 std::cout << cards[i].first << "\nflip (f), next (n), or back (b): ";
-                flip:
                 std::string input;
                 std::cin >> input;
 
-                if (input == "f")
+                if (input == "f") //flip
                 {
                     if (front) 
                         {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].second << "\nflip (f), next (n), or back (b): "; front = false;}
                     else    
                         {std::cout << CUR_UP1 CUR_UP1 CUR_UP1 CUR_DOWN1 << cards[i].first << "\nflip (f), next (n), or back (b): "; front = true;}
-                    goto flip;
                 }             
-                if (input == "n")
-                {
-                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
-                    continue;
-                }
-                if (input == "b")
-                {
-                    std::cout <<  CUR_UP1 CUR_DOWN1  CUR_UP1 CUR_DOWN1;
-                    if (!i == 0)
-                        i-=2;
-                    else
-                        i--;
-                }
+                if (input == "n") //next
+                    i++;
+                if (input == "b" && !i == 0) //back. the !i == 0  in the if statement just makes sure that the user isn't trying to go back from the first card in the set.
+                    i--;
             }
         }
-        else if (setOpened && input == "write")
+        else if (setOpened && input == "write") //everything under this if statement HAS to be satanic
         {
             std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
             std::vector<std::pair<std::string, std::string>> cards;
+
+
+            std::random_device rd; //I genuinley have no clue what this lines do I just copied them. all they do shuffle the cards
+            std::mt19937 g(rd());  // 
+            std::uniform_int_distribution<int> distrib(0, 1); 
             
             std::string term;
+            std::string definition;
 
             int index = 0;
             set.clear();
-            set.seekg(0, std::ios::beg);
-            while (std::getline(set, term))
+            set.seekg(0, std::ios::beg); //moves the get pointer to the start of the file
+            while (std::getline(set, term)) //goes through every line in the set to bag all the terms and definitions into pairs
             {
-                std::string definition;
                 if (!std::getline(set, definition)) break;
-                std::pair<std::string, std::string> card;
-                if (rand()%2 == 1)
+                std::pair<std::string, std::string> card; //creates a pair
+
+                if (distrib(g) == 1) //uses a rand number to decide whether the user has to answer a term to a definition or a definition to a term
                     card = {term, definition};
                 else
                     card = {definition, term};
                  
-                cards.push_back(card);
+                cards.push_back(card); //puts the cards into the cards vector
 
                 index++;
             }        
-
-            std::random_device rd; //I genuinley have no clue what this lines do I just copied them. all they do shuffle the cards
-            std::mt19937 g(rd());  // 
         
             std::shuffle(cards.begin(), cards.end(), g);
             for (int i = 0; i < cards.size(); i++)
             {
-                preAnswer:
-                std::cout << cards[i].first << "\n: ";
+                std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << cards[i].first << "\n: ";
 
-                std::string answer;
+                std::string answer; //there HAS to be a better way to do this but this works well enough.
                 std::cin >> answer;
                 std::string answer_extra;
                 std::getline(std::cin, answer_extra);
@@ -241,7 +251,6 @@ void startTerminalLoop()
                     std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1 << "correct!\n: enter anything to continue ";
                     std::string Continue;
                     std::getline(std::cin, Continue);
-                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
                 }
                 else
                 {
@@ -249,7 +258,6 @@ void startTerminalLoop()
                     
                     std::string Continue;
                     std::getline(std::cin, Continue);
-                    std::cout << CUR_UP1 CUR_DOWN1 CUR_UP1 CUR_DOWN1;
 
                     if (Continue != "N")
                     {
@@ -262,12 +270,12 @@ void startTerminalLoop()
             }
 
         }
-        else if (setOpened && input == "addcards")
+        else if (setOpened && input == "addcards") //so many stds
         {
             while (true)
             {
                 set.clear();
-                set.seekg(0, std::ios::end);
+                set.seekg(0, std::ios::end); //brings the get pointer to the start of the set's fstream
                 std::cout << "please enter the term: " << std::endl;
                 std::string term; 
                 std::cin >> term;
@@ -322,52 +330,50 @@ void startTerminalLoop()
                 int index = 0;
                 for (std::pair<std::string, std::string> card : cards)
                 {
-                    if (Delete == card.first || Delete == card.second)
+                    if (Delete == card.first)
                     {
-                        if (Delete == card.first)
+                        set.clear();
+                        set.seekg(0, std::ios::beg);
+                        int i = 0;
+                        while (true)
                         {
-                            set.clear();
-                            set.seekg(0, std::ios::beg);
-                            int i = 0;
-                            while (true)
-                            {
-                                std::string line;
-                                std::getline(set, line);
+                            std::string line;
+                            std::getline(set, line);
 
-                                if (line == Delete)
-                                {
-                                    set.close(); //closing the path so that deleteLine works
-                                    deleteLine(setName, i+1);
-                                    deleteLine(setName, i);
-                                    set.open(setPath); //reopening after deletion
-                                    break;
-                                }
-                                i++;
-                            }
-                        }
-                        if (Delete == card.second)
-                        {
-                            set.clear();
-                            set.seekg(0, std::ios::beg);
-                            int i = 0;
-                            while (true)
+                            if (line == Delete)
                             {
-                                std::string line;
-                                std::getline(set, line);
-
-                                if (line == Delete)
-                                {
-                                    set.close(); //closing the path so that deleteLine works
-                                    deleteLine(setName, i-1);
-                                    deleteLine(setName, i-1);
-                                    set.open(setPath); //reopening after deletion
-                                    break;
-                                }
-                                i++;
+                                set.close(); //closing the path so that deleteLine works
+                                deleteLine(setName, i+1);
+                                deleteLine(setName, i);
+                                set.open(setPath); //reopening after deletion
+                                break;
                             }
+                            i++;
                         }
-                        break;
                     }
+                    if (Delete == card.second)
+                    {
+                        set.clear();
+                        set.seekg(0, std::ios::beg);
+                        int i = 0;
+                        while (true)
+                        {
+                            std::string line;
+                            std::getline(set, line);
+
+                            if (line == Delete)
+                            {
+                                set.close(); //closing the path so that deleteLine works
+                                deleteLine(setName, i-1);
+                                deleteLine(setName, i-1);
+                                set.open(setPath); //reopening after deletion
+                                break;
+                            }
+                            i++;
+                        }
+                    }
+                    break;
+                    
                     index++;
                 }
 
