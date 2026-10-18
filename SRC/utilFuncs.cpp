@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 
 int FindNumberOfCardsInSet(std::string setToOpen)
@@ -19,4 +20,17 @@ int FindNumberOfCardsInSet(std::string setToOpen)
 
     setBeingRead.close();
     return lines/2; //divide the number of lines by 2 since each card is 2 lines
+}
+
+
+std::string getUserInput(std::string question, bool lower, bool accountForSpaces)
+{
+    std::cout << question;
+    std::string answer;
+    std::cin >> answer;
+
+    if (lower) std::transform(answer.begin(), answer.end(), answer.begin(), ::tolower);
+    if (accountForSpaces) {std::string answer_extra; std::getline(std::cin, answer_extra); answer = answer+answer_extra;}
+
+    return answer;
 }
