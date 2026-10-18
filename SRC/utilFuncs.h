@@ -5,7 +5,7 @@
 #include <fstream>
 
 int FindNumberOfCardsInSet(std::string setToOpen);
-
+std::string getUserInput(std::string question, bool lower, bool accountForSpaces);
 
 
 #endif
