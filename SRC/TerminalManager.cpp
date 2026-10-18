@@ -5,8 +5,6 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
-#include <cctype>
-#include <cstdio>
 #include <random>
 #include <vector>
 #include <filesystem>
@@ -52,11 +50,7 @@ void startTerminalLoop()
     std::cout << "type \"help\" for a list of valid commands\n";
     while (true)
     {
-        std::string input;
-        std::cout << "\ninput a command: ";
-        std::cin >> input;
-        std::transform(input.begin(), input.end(), input.begin(), ::tolower); //makes the input all lowercase. the first input.begin() and input.end() specify
-        //where the transformation happens, the second input.begin() just needs to be there I forgot why, and ::tolower is the operation thats being performed
+        std::string input = getUserInput("\ninput a command: ", true, false);
         
         if (input == "help")
         {
@@ -64,9 +58,7 @@ void startTerminalLoop()
         }
         else if (input == "newset")
         {
-            std::cout << "type the name of your new set: ";
-            std::string name;
-            std::cin >> name;
+            std::string name = getUserInput("type the name of  your new set: ", true, false);
 
             std::ifstream setExists("sets/"+name+".txt");
             if (!fs::is_directory("sets")) 
@@ -89,9 +81,7 @@ void startTerminalLoop()
         }
         else if (input == "deleteset")
         {
-            std::cout << "type the name of the set you want to delete: ";
-            std::string name;
-            std::cin >> name;
+            std::string name = getUserInput("type the name of the set you want to delete: ", true, false);
 
             std::ifstream setExists("sets/"+name+".txt");
             if (setExists.good()) //if theres no errors it means it found the file and it exists which means it doesn't need to create a file
@@ -123,21 +113,19 @@ void startTerminalLoop()
         }
         else if (input == "openset")
         {
-            std::cout << "type the name of the set you would like to open: ";
-            std::string Name;
-            std::cin >> Name;
+            std::string name = getUserInput("type the name of the set you want to open: ", true, false);
             
-            std::ifstream setThere("sets/"+Name+".txt");
+            std::ifstream setThere("sets/"+name+".txt");
             if (!setThere.good()) //makes sure it was able to open the file
             {
                 std::cout << "Error: that set does not exist\n";
                 continue;
             }
             setThere.close();
-            set.open("sets/" + Name + ".txt");
+            set.open("sets/" + name + ".txt");
             setOpened = true;
-            setPath = "sets/" + Name + ".txt";
-            setName = Name;
+            setPath = "sets/" + name + ".txt";
+            setName = name;
         }
         else if (input == "kill")
         {
@@ -170,9 +158,7 @@ void startTerminalLoop()
                 index++;
             }                        
             
-            std::cout << "should the cards be shuffled? (y/n): " << std::endl;
-            std::string answer; 
-            std::cin >> answer;
+            std::string answer = getUserInput("should the cards be shuffled? (y/n): ", true, false);
 
             if (answer == "y" || answer == "Y")
             {
@@ -188,8 +174,7 @@ void startTerminalLoop()
 
                 std::cout <<  CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE; // move the cursor to go back up and write over the last card
                 std::cout << ((front == true) ? cards[i].first : cards[i].second) << "\nflip (f), next (n), or back (b): ";
-                std::string input;
-                std::cin >> input;
+                std::string input = getUserInput("", true, false);
 
                 if (input == "f") //flip
                 {
@@ -246,26 +231,19 @@ void startTerminalLoop()
             {
                 std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << cards[i].first << "\n: ";
 
-                std::string answer; //there HAS to be a better way to do this but this works well enough.
-                std::cin >> answer;
-                std::string answer_extra;
-                std::getline(std::cin, answer_extra);
-                answer = answer+answer_extra;
+                std::string answer = getUserInput("", true, true);
 
                 if (answer == cards[i].second)
                 {
-                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "correct!\n: enter anything to continue ";
-                    std::string Continue;
-                    std::getline(std::cin, Continue);
+                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "correct!\n: enter anything to continue ";
+                    std::cin.get(); //holds the program until enter is pressed again
                 }
                 else
                 {
-                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "incorrect! the correct answer was " << cards[i].second << "\n: enter anything to continue (type N if you were correct) ";
-                    
+                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "incorrect! the correct answer was "+cards[i].second+"\n: enter anything to continue (type N if you were correct) ";
                     std::string Continue;
                     std::getline(std::cin, Continue);
-
-                    if (Continue != "N")
+                    if (Continue != "N" && Continue != "n")
                     {
                         std::pair<std::string, std::string> savedCard = cards[i];
                         cards.erase(cards.begin()+i);
@@ -282,23 +260,11 @@ void startTerminalLoop()
             {
                 set.clear();
                 set.seekg(0, std::ios::end); //brings the get pointer to the start of the set's fstream
-                std::cout << "please enter the term: " << std::endl;
-                std::string term; 
-                std::cin >> term;
-                std::string extraTerms;
-                std::getline(std::cin, extraTerms);
-                term = term+extraTerms;
-                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "now enter the definition of that term: " << std::endl;
-                std::string definition; 
-                std::cin >> definition;
-                std::string extraDefs;
-                std::getline(std::cin, extraDefs);
-                definition = definition+extraDefs;
+                std::string term = getUserInput("Please enter a term: ", false, true);
+                std::string definition = getUserInput("now enter the definition of that term: \n", false, true);
                 set << term << std::endl << definition << std::endl;
 
-                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << "add another term? (y/n): "; 
-                std::string answer;
-                std::cin >> answer;
+                std::string answer = getUserInput("add another term? (y/n): ", true, false);
 
                 if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
                 else {break;}
@@ -326,12 +292,7 @@ void startTerminalLoop()
             {
                 set.clear();
                 set.seekg(0, std::ios::end);
-                std::cout << "please enter the term or definition of the card you would like to delete: " << std::endl;
-                std::string Delete; 
-                std::cin >> Delete;
-                std::string extraDeletes;
-                std::getline(std::cin, extraDeletes);
-                Delete = Delete+extraDeletes;
+                std::string Delete = getUserInput("please enter the term or definition of the card you would like to delete: ", false, true);
 
                 int index = 0;
                 for (std::pair<std::string, std::string> card : cards)
@@ -383,9 +344,7 @@ void startTerminalLoop()
                     index++;
                 }
 
-                std::cout << CUR_UP1 DEL_LINE << "delete another term? (y/n): "; 
-                std::string answer;
-                std::cin >> answer;
+                std::string answer = getUserInput("delete another term? (y/n): ", false, true);
 
                 if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
                 else {break;}
