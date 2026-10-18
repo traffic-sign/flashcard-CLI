@@ -16,7 +16,7 @@
 namespace fs = std::filesystem;
 
 
-void deleteLine(std::string fileName, int Delete)
+void deleteLine(std::string fileName, int Delete) //this is so ugly but I really can't find any better way
 {
     std::ifstream inFile("sets/"+fileName+".txt");
     std::ofstream outFile("sets/temp.txt");
@@ -34,7 +34,6 @@ void deleteLine(std::string fileName, int Delete)
     inFile.close();
     outFile.close();
 
-    std::cout << fileName << '\n';
     const char* path = ("sets/"+fileName+".txt").c_str();
     
     std::remove(path);
@@ -47,6 +46,8 @@ void startTerminalLoop()
     std::fstream set;
     std::string setPath = "";
     std::string setName = "";
+    std::vector<std::pair<std::string, std::string>> cards;
+            
     std::cout << "type \"help\" for a list of valid commands\n";
     while (true)
     {
@@ -61,19 +62,16 @@ void startTerminalLoop()
             std::string name = getUserInput("type the name of  your new set: ", true, false);
 
             std::ifstream setExists("sets/"+name+".txt");
-            if (!fs::is_directory("sets")) 
-            {
-                fs::path current_dir = fs::current_path();
-                fs::path new_sets_path = current_dir / "sets";
-                fs::create_directory(new_sets_path);
-            }
-            if (setExists.good()) //if theres no errors it means it found the file and it exists which means it doesn't need to create a file
+            if (fs::exists("sets/"+name+".txt")) //if theres no errors it means it found the file and it exists which means it doesn't need to create a file
             {
                 std::cout << "Error: a set with that name already exists!";
                 setExists.close();
             }
             else
             {
+                fs::path current_dir = fs::current_path();
+                fs::path new_sets_path = current_dir / "sets";
+                fs::create_directory(new_sets_path);
                 std::ofstream newSet("sets/"+name+".txt");
                 newSet.close();
             }
@@ -126,6 +124,15 @@ void startTerminalLoop()
             setOpened = true;
             setPath = "sets/" + name + ".txt";
             setName = name;
+
+            std::string term;
+            while (std::getline(set, term))
+            {
+                std::string definition;
+                if (!std::getline(set, definition)) break;
+                std::pair<std::string, std::string> card = {term, definition};
+                cards.push_back(card);
+            }
         }
         else if (input == "kill")
         {
@@ -137,26 +144,12 @@ void startTerminalLoop()
             setOpened = false;
             setPath = "";
             setName = "";
+            cards.clear();
         }
         else if (setOpened && input == "cards")
         {
             std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-            std::vector<std::pair<std::string, std::string>> cards;
-            
-            std::string term;
-
-            int index = 0;
-            set.clear();
-            set.seekg(0, std::ios::beg);
-            while (std::getline(set, term))
-            {
-                std::string definition;
-                if (!std::getline(set, definition)) break;
-                std::pair<std::string, std::string> card = {term, definition};
-                cards.push_back(card);
-
-                index++;
-            }                        
+            std::vector<std::pair<std::string, std::string>> unshuffled_cards = cards;          
             
             std::string answer = getUserInput("should the cards be shuffled? (y/n): ", true, false);
 
@@ -194,53 +187,33 @@ void startTerminalLoop()
                     i--;
                 }
             }
+            cards = unshuffled_cards;
         }
         else if (setOpened && input == "write") //everything under this if statement HAS to be satanic
         {
             std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-            std::vector<std::pair<std::string, std::string>> cards;
-
+            std::vector<std::pair<std::string, std::string>> preWriteCards = cards;
 
             std::random_device rd; //I genuinley have no clue what this lines do I just copied them. all they do shuffle the cards
             std::mt19937 g(rd());  // 
             std::uniform_int_distribution<int> distrib(0, 1); 
-            
-            std::string term;
-            std::string definition;
-
-            int index = 0;
-            set.clear();
-            set.seekg(0, std::ios::beg); //moves the get pointer to the start of the file
-            while (std::getline(set, term)) //goes through every line in the set to bag all the terms and definitions into pairs
-            {
-                if (!std::getline(set, definition)) break;
-                std::pair<std::string, std::string> card; //creates a pair
-
-                if (distrib(g) == 1) //uses a rand number to decide whether the user has to answer a term to a definition or a definition to a term
-                    card = {term, definition};
-                else
-                    card = {definition, term};
-                 
-                cards.push_back(card); //puts the cards into the cards vector
-
-                index++;
-            }        
         
             std::shuffle(cards.begin(), cards.end(), g);
             for (int i = 0; i < cards.size(); i++)
             {
-                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << cards[i].first << "\n: ";
+                bool flipped = distrib(g);
+                std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE << ((flipped) ? cards[i].second : cards[i].first) << "\n: ";
 
                 std::string answer = getUserInput("", true, true);
 
-                if (answer == cards[i].second)
+                if (answer == ((flipped) ? cards[i].first : cards[i].second))
                 {
                     std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "correct!\n: enter anything to continue ";
                     std::cin.get(); //holds the program until enter is pressed again
                 }
                 else
                 {
-                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "incorrect! the correct answer was "+cards[i].second+"\n: enter anything to continue (type N if you were correct) ";
+                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "incorrect! the correct answer was "+((flipped) ? cards[i].first : cards[i].second)+"\n: enter anything to continue (type N if you were correct) ";
                     std::string Continue;
                     std::getline(std::cin, Continue);
                     if (Continue != "N" && Continue != "n")
@@ -252,6 +225,7 @@ void startTerminalLoop()
                     }
                 }
             }
+            cards = preWriteCards; //restores cards back to before write 
 
         }
         else if (setOpened && input == "addcards") //so many stds
@@ -265,6 +239,8 @@ void startTerminalLoop()
                 set << term << std::endl << definition << std::endl;
 
                 std::string answer = getUserInput("add another term? (y/n): ", true, false);
+                std::pair<std::string, std::string> card(term, definition);
+                cards.push_back(card);
 
                 if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
                 else {break;}
@@ -272,22 +248,8 @@ void startTerminalLoop()
         }
         else if (setOpened && input == "removecards")
         {
-            std::vector<std::pair<std::string, std::string>> cards;
-            
             std::string term;
 
-            int index = 0;
-            set.clear();
-            set.seekg(0, std::ios::beg);
-            while (std::getline(set, term))
-            {
-                std::string definition;
-                if (!std::getline(set, definition)) break;
-                std::pair<std::string, std::string> card = {term, definition};
-                cards.push_back(card);
-
-                index++;
-            }
             while (true)
             {
                 set.clear();
@@ -313,6 +275,7 @@ void startTerminalLoop()
                                 deleteLine(setName, i+1);
                                 deleteLine(setName, i);
                                 set.open(setPath); //reopening after deletion
+                                std::erase(cards, card);
                                 break;
                             }
                             i++;
@@ -334,12 +297,12 @@ void startTerminalLoop()
                                 deleteLine(setName, i-1);
                                 deleteLine(setName, i-1);
                                 set.open(setPath); //reopening after deletion
+                                std::erase(cards, card);
                                 break;
                             }
                             i++;
                         }
                     }
-                    break;
                     
                     index++;
                 }
@@ -353,26 +316,10 @@ void startTerminalLoop()
         else if (setOpened && input == "showallcards")
         {
             std::cout << "\n\n";
-            std::vector<std::pair<std::string, std::string>> cards;
-            
-            std::string term;
-
-            int index = 0;
-            set.clear();
-            set.seekg(0, std::ios::beg);
-            while (std::getline(set, term))
-            {
-                std::string definition;
-                if (!std::getline(set, definition)) break;
-                std::pair<std::string, std::string> card = {term, definition};
-                cards.push_back(card);
-
-                index++;
-            }        
             std::cout << "------------------------------------";
             for (int i = 0; i < cards.size(); i++)
             {
-                std::cout << "\n\n" << cards[i].second << "  :  " << cards[i].first;
+                std::cout << "\n\n" << cards[i].first << "  :  " << cards[i].second;
             }
             std::cout << "\n\n------------------------------------";
         }
