@@ -17,7 +17,7 @@
 namespace fs = std::filesystem;
 
 
-void deleteLine(std::string fileName, int Delete) //this is so ugly but I really can't find any better way
+void deleteLine(std::string fileName, int Delete) //I had to have been possessed by satan himself to write this horrid code I'm not even going to touch this for a while
 {
     std::ifstream inFile("sets/"+fileName+".txt");
     std::ofstream outFile("sets/temp.txt");
@@ -158,7 +158,7 @@ void startTerminalLoop()
             if (set.shuffled)
                 set.restore();
         }
-        else if (set.setOpened && input == "write") //everything under this if statement HAS to be satanic
+        else if (set.setOpened && input == "write") //It works well enough to where I don't want to touch it anymore
         {
             std::string shuffled = getUserInput("should the cards be shuffled and have a mix of answering with definitions and terms? (y/n): ", true, false);
             if (shuffled == "y" || shuffled == "Y")
@@ -179,10 +179,8 @@ void startTerminalLoop()
                 }
                 else
                 {
-                    std::cout << CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "incorrect! the correct answer was "+set.cards[i].first+"\n: enter anything to continue (type N if you were correct) ";
-                    std::string Continue;
-                    std::getline(std::cin, Continue);
-                    if (Continue != "N" && Continue != "n")
+                    std::string Continue = getUserInput(CUR_UP1 DEL_LINE CUR_UP1 DEL_LINE "incorrect! the correct answer was "+set.cards[i].first+"\n: enter anything to continue (type N if you were correct) ", true, false);
+                    if (Continue != "n")
                     {
                         std::pair<std::string, std::string> savedCard = set.cards[i];
                         set.cards.erase(set.cards.begin()+i);
