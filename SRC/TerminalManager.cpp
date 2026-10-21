@@ -11,10 +11,6 @@
 #include <vector>
 #include <filesystem>
 
-
-#define CUR_UP1 "\033[F"
-#define DEL_LINE "\033[K"
-
 namespace fs = std::filesystem;
 
 
@@ -223,7 +219,7 @@ void startTerminalLoop()
                 terminal.clearline(terminal.height-1);
                 std::string answer = getUserInput(terminal, 0, terminal.height-1, "add another term? (y/n): ", true, false);
 
-                if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
+                if (answer == "y") {continue;}
                 else {break;}
             }
         }
@@ -294,7 +290,7 @@ void startTerminalLoop()
                 terminal.clearline(terminal.height-1);
                 std::string answer = getUserInput(terminal, 0, terminal.height-1, "delete another term? (y/n): ", false, true);
 
-                if (answer == "y") {std::cout << CUR_UP1 DEL_LINE; continue;}
+                if (answer == "y") {continue;}
                 else {break;}
             }
         }
