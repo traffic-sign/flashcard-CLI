@@ -15,7 +15,6 @@ A CLI tool for creating and reviewing flashcards!
 -Support for Unicode characters  
 -A way to easily write letters with accents  
 -Much better UI  
--Breaking up the horrendous TerminalManager.cpp mega file into multiple smaller files   
 -Instant reaction to where you don't have to click enter in cases where you're only typing one char into the CLI at once  
 -A Spaced Repetition Algorithm (like SM-2 or a simple digital version of the Leitner system)  
 -A better system for storing info on a set  
