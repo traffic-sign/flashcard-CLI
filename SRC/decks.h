@@ -22,6 +22,7 @@ struct deck
     void shuffle();
     void flipAndShuffle();
     void restore();
+    void flushCardVectorToFile();
 };
 
 #endif
