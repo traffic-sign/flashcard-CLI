@@ -4,16 +4,19 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <filesystem>
 
-void deck::openSet(std::string NAME, std::string PATH)
+namespace fs = std::filesystem;
+
+void deck::openSet(std::string nameINIT, std::string pathINIT)
 {
-    setStream.open(PATH, std::ios::in | std::ios::out);
+    setStream.open(pathINIT, std::ios::in | std::ios::out);
 
     if (setStream.is_open()) 
     {
         setOpened = true;
-        name = NAME;
-        path = PATH;
+        name = nameINIT;
+        path = pathINIT;
         setStream.seekg(0);
         setStream.clear();
 
@@ -25,7 +28,7 @@ void deck::openSet(std::string NAME, std::string PATH)
         while (std::getline(setStream, definition))
         {
             std::getline(setStream, term);
-            card.first = definition; card.second = term;
+            card.first = term; card.second = definition;
             untransformableCards.push_back(card);
             cards.push_back(card);
             card_count++;
@@ -61,6 +64,7 @@ void deck::shuffle()
 void deck::restore()
 {
     cards = untransformableCards;
+    cardCount = cards.size();
     shuffled = false;
 }
 
@@ -86,3 +90,15 @@ void deck::flipAndShuffle()
 }
 
 
+void deck::flushCardVectorToFile()
+{
+    setStream.clear();
+    setStream.seekg(0, std::ios::end);
+    fs::resize_file(path, 0);
+
+    for (std::pair<std::string, std::string> card : cards)
+    {
+        setStream << card.first << std::endl << card.second << std::endl;
+    }
+    cardCount = cards.size();
+}
