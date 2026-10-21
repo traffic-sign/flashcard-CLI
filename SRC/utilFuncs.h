@@ -1,11 +1,10 @@
 #ifndef _UTILFUNCS_H_
 #define _UTILFUNCS_H_
 
-#include <string>
-#include <fstream>
+#include "terminal.h"
 
 int FindNumberOfCardsInSet(std::string setToOpen);
-std::string getUserInput(std::string question, bool lower, bool accountForSpaces);
+std::string getUserInput(terminalRenderer& terminal, int x, int y, std::string question, bool lower, bool accountForSpaces);
 
 
 #endif
