@@ -1,4 +1,5 @@
 #include "utilFuncs.h"
+#include "terminal.h"
 
 #include <fstream>
 #include <iostream>
@@ -23,14 +24,19 @@ int FindNumberOfCardsInSet(std::string setToOpen)
 }
 
 
-std::string getUserInput(std::string question, bool lower, bool accountForSpaces)
+std::string getUserInput(terminalRenderer& terminal, int x, int y, std::string question, bool lower, bool accountForSpaces)
 {
-    std::cout << question;
+    terminal.toggleCursor();
+    terminal.writeText(question, x, y);
+    terminal.render();
+    terminal.moveCursor(1, question.length());
+    
     std::string answer;
     std::cin >> answer;
 
     if (lower) std::transform(answer.begin(), answer.end(), answer.begin(), ::tolower);
     if (accountForSpaces) {std::string answer_extra; std::getline(std::cin, answer_extra); answer = answer+answer_extra;}
 
+    terminal.toggleCursor();
     return answer;
 }
