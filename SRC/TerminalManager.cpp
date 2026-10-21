@@ -14,29 +14,6 @@
 namespace fs = std::filesystem;
 
 
-void deleteLine(std::string fileName, int Delete) //I had to have been possessed by satan himself to write this horrid code I'm not even going to touch this for a while
-{
-    std::ifstream inFile("sets/"+fileName+".txt");
-    std::ofstream outFile("sets/temp.txt");
-
-    std::string line;
-    int currentLine = 0;
-
-    while (std::getline(inFile, line)) {
-        if (currentLine != Delete) {
-            outFile << line << "\n";
-        }
-        currentLine++;
-    }
-
-    inFile.close();
-    outFile.close();
-
-    const char* path = ("sets/"+fileName+".txt").c_str();
-    
-    std::remove(path);
-    std::rename("sets/temp.txt", ("sets/"+fileName+".txt").c_str());
-}
 
 void startTerminalLoop()
 {
@@ -204,17 +181,13 @@ void startTerminalLoop()
         {
             while (true)
             {
-                set.setStream.clear();
-                set.setStream.seekg(0, std::ios::end); //brings the get pointer to the start of the set's fstream
                 terminal.clearline(terminal.height-1);
                 std::string term = getUserInput(terminal, 0, terminal.height-1, "Please enter a term: ", false, true);
                 terminal.clearline(terminal.height-1);
                 std::string definition = getUserInput(terminal, 0, terminal.height-1, "now enter the definition of that term: ", false, true);
-                set.setStream << term << std::endl << definition << std::endl;
 
                 std::pair<std::string, std::string> card(term, definition);
                 set.cards.push_back(card);
-                set.cardCount++;
                 
                 terminal.clearline(terminal.height-1);
                 std::string answer = getUserInput(terminal, 0, terminal.height-1, "add another term? (y/n): ", true, false);
@@ -222,6 +195,7 @@ void startTerminalLoop()
                 if (answer == "y") {continue;}
                 else {break;}
             }
+            set.flushCardVectorToFile();
         }
         else if (set.setOpened && input == "removecards")
         {
@@ -229,61 +203,17 @@ void startTerminalLoop()
 
             while (true)
             {
-                set.setStream.clear();
-                set.setStream.seekg(0, std::ios::end);
                 terminal.clearline(terminal.height-1);
                 std::string Delete = getUserInput(terminal, 0, terminal.height-1, "please enter the term or definition of the card you would like to delete: ", false, true);
 
                 int index = 0;
                 for (std::pair<std::string, std::string> card : set.cards)
                 {
-                    if (Delete == card.first)
+                    if (Delete == card.first || Delete == card.second)
                     {
-                        set.setStream.clear();
-                        set.setStream.seekg(0, std::ios::beg);
-                        int i = 0;
-                        while (true)
-                        {
-                            std::string line;
-                            std::getline(set.setStream, line);
-
-                            if (line == Delete)
-                            {
-                                set.setStream.close(); //closing the path so that deleteLine works
-                                deleteLine(set.name, i+1);
-                                deleteLine(set.name, i);
-                                set.setStream.open(set.path); //reopening after deletion
-                                std::erase(set.cards, card);
-                                set.cardCount--;
-                                break;
-                            }
-                            i++;
-                        }
+                        std::erase(set.cards, card);
+                        break;
                     }
-                    if (Delete == card.second)
-                    {
-                        set.setStream.clear();
-                        set.setStream.seekg(0, std::ios::beg);
-                        int i = 0;
-                        while (true)
-                        {
-                            std::string line;
-                            std::getline(set.setStream, line);
-
-                            if (line == Delete)
-                            {
-                                set.setStream.close(); //closing the path so that deleteLine works
-                                deleteLine(set.name, i-1);
-                                deleteLine(set.name, i-1);
-                                set.setStream.open(set.path); //reopening after deletion
-                                std::erase(set.cards, card);
-                                set.cardCount--;
-                                break;
-                            }
-                            i++;
-                        }
-                    }
-                    
                     index++;
                 }
 
@@ -293,6 +223,7 @@ void startTerminalLoop()
                 if (answer == "y") {continue;}
                 else {break;}
             }
+            set.flushCardVectorToFile();
         }
         else if (set.setOpened && input == "showallcards")
         {
@@ -305,7 +236,7 @@ void startTerminalLoop()
                 terminal.writeText(set.cards[numCards].first+"  :  "+set.cards[numCards].second, 0, numCards+2);
             }
 
-            terminal.writeText("------------------------------------", 0, numCards+3);
+            terminal.writeText("------------------------------------", 0, numCards+2);
             terminal.writeText("Press any key to continue: ", 0, terminal.height-1);
             terminal.render();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
